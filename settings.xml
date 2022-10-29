@@ -5,14 +5,14 @@
 
   <servers>
     <server>
-      <id>mymaven-snapshots</id>
+      <id>mymaven-snapshot</id>
       <username>admin</username>
-      <password>Passw0rd</password>
+      <password>rahul</password>
     </server>
     <server>
-      <id>mymaven-releases</id>
+      <id>mymaven-release</id>
       <username>admin</username>
-      <password>Passw0rd</password>
+      <password>rahul</password>
     </server>
   </servers>
 
