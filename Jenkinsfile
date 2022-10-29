@@ -1,96 +1,59 @@
 pipeline{
-   agent {
-       label "mybuildserver"
-   }
-    tools {
-        maven 'maven'
+    agent any
+    tools{
+        maven 'maven_3.8.6'
     }
     stages{
-        stage("code checkout"){
+        stage("build"){
             steps{
-                echo "========checking out code from github repo========"
-                checkout([$class: 'GitSCM', branches: [[name: '*/master']], extensions: [], userRemoteConfigs: [[credentialsId: '2d64d980-832f-4dd0-b22d-b5cb971e0a7a', url: 'https://github.com/vcroshan/simple-java-maven-app.git']]])
-            }
-            post{
-                success{
-                    echo "========Code checkout from Github repo completed========"
+                script{
+                    sh 'mvn install'
                 }
-                failure{
-                    echo "========Code checkout from Github repo failed========"
-                }
+
             }
         }
-        stage ("execute script") {
+        stage("unit testing"){
             steps{
-                echo "Workspace:- $WORKSPACE"
-                echo "Job Name :- $JOB_NAME"
-                echo "Build ID :- $BUILD_ID"
-                echo "Jenkins Home :- $JENKINS_HOME"
-                echo "Inputparam1 : $Inputparam1"
-                echo "InputParam2 : $Inputparam2"
-            }
-        }
-        stage("Build") {
-            steps{
-                sh 'mvn -DskipTests clean package'
-            }
-            post{
-                success {
-                    echo "=========Build completed successfully============="
-                    
-                }
-                failure {
-                    echo "==========Build failed=========="
-                }
-            }
-        }
-        stage("Unit Testing") {
-            steps{
+               
                 sh 'mvn test'
             }
-            post {
+            post{
                 success{
-                    echo "======Unit testing completed successfull, publishing report========="
-                    junit 'target/surefire-reports/*.xml'
+                     echo "junit testing is success,publishing report"
+                     junit 'target/surefire-reports/*.xml'
+               
                 }
                 failure{
-                    echo "==========unit test cases failed, report not published===="
+                    echo "junit testing is failed"
+
                 }
             }
         }
-        stage ("sonar scanning") {
-            steps {
-                script { 
-                    //def scannerHome = tool name: 'mySonarScanner';
-                    withSonarQubeEnv("MySonarqube") {
-                        sh "${tool("mySonarscanner")}/bin/sonar-scanner \
-                        -Dsonar.projectKey=simple-java-maven-app \
+        stage("sonar"){
+            steps{
+                script{
+                    withSonarQubeEnv(credentialsId: 'sonarqube_instance') {
+                        sh "${tool("sonarqube_4.7.0.2747")}/bin/sonar-scanner \
+                        -Dsonar.projectKey=simple_java_maven_app \
                         -Dsonar.sources=. \
                         -Dsonar.java.binaries=target \
-                        -Dsonar.host.url=http://172.31.10.15:9000 \
-                        -Dsonar.login=cc178140ffe774764ca39f4c5f009e8756719923"
+                        -Dsonar.host.url=http://172.31.21.19:9000 \
+                        -Dsonar.login=c5c0fb5b4e4b222b4a84b9004d2f10b15df9d227"
+   
                     }
-               }
-            }
-        }
-        stage ("Upload to Nexus") {
-            steps {
-                sh "mvn -gs ${WORKSPACE}/settings.xml deploy"
-               }
+                }
             }
 
-        
-    
+        }
+        stage("upload artifact"){
+            steps{
+               sh 'mvn -s settings.xml deploy'
+            }
+        }
+       
+       
+
     }
-    post{
-        always{
-            echo "========always========"
-        }
-        success{
-            echo "========pipeline executed successfully ========"
-        }
-        failure{
-            echo "========pipeline execution failed========"
-        }
-    }
+
 }
+
