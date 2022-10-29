@@ -32,7 +32,7 @@ pipeline{
         stage("sonar"){
             steps{
                 script{
-                    withSonarQubeEnv(credentialsId: 'sonarqube_instance') {
+                    withSonarQubeEnv(credentialsId: 'sonarqube_secret') {
                         sh "${tool("sonarqube_4.7.0.2747")}/bin/sonar-scanner \
                         -Dsonar.projectKey=simple_java_maven_app \
                         -Dsonar.sources=. \
